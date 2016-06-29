@@ -42,17 +42,10 @@ screens=Screen('Screens');
 Screen('Preference', 'SkipSyncTests', 2);
 screenNumber=max(screens); % Main screen
 winRect = [0,0,1680,1050];
-[win,winRect] = Screen('OpenWindow',screenNumber,black)
+[win,winRect] = Screen('OpenWindow',screenNumber,black);
 
-%Welcome screen (uncomment later)
-%DrawFormattedText(win,'Benvenuto! \n \n Quando sei pronto per cominciare, premi INVIO.','center','center',white);
-%Screen('Flip',win);
-%RestrictKeysForKbCheck(enter); % to restrict key presses to enter
-%[secs, keyCode, deltaSecs] = KbWait([],2);
-%RestrictKeysForKbCheck([]);
-
-%Start trials
-DateTime = datestr(now,'yyyymmdd-HHMM')
+%Declare variables
+%DateTime = datestr(now,'yyyymmdd-HHMM')
 
 valueObjA = [9 12 6 19 15];
 valueObjB = [5 8 11 14 18];
@@ -81,15 +74,28 @@ perB = perms([1 4 6 8 10]);
 matrixWholeB = perB(randperm(length(perB)),:);
 matrix45B = matrixWholeB(1:45,:);
 
-%vertically concatenate the two matrices
+%create one single big matrix, with rows shuffled
 matrix90 = [matrix45A; matrix45B];
-
-%shuffle rows to create one single big matrix
 bigMatrix = matrix90(randperm(90),:);
+
 ch=ones(30,1);
-%make a choice
+
+%% Start trials
+
+%Welcome screen (uncomment later)
+%DrawFormattedText(win,'Benvenuto! \n \n Quando sei pronto per cominciare, premi INVIO.','center','center',white);
+%Screen('Flip',win);
+%RestrictKeysForKbCheck(enter); % to restrict key presses to enter
+%[secs, keyCode, deltaSecs] = KbWait([],2);
+%RestrictKeysForKbCheck([]);
+
 for i=1:30
     if any(bigMatrix(i,:) == 7)
+    valueObjA_1 = num2str(valueObjA(1,1));
+    valueObjA_2 = num2str(valueObjA(1,2));
+    valueObjA_3 = num2str(valueObjA(1,3));
+    valueObjA_4 = num2str(valueObjA(1,4));
+    valueObjA_5 = num2str(valueObjA(1,5));
     greenValue = datasample(valueObjA,1) %pick random value from valueObjA
     row = bigMatrix(i,:) %display options
         if greenValue == 6
@@ -104,6 +110,11 @@ for i=1:30
         compChoice = lookup{15}
         end
     elseif any(bigMatrix(i,:) == 10)
+            valueObjB_1 = num2str(valueObjB(1,1));
+            valueObjB_2 = num2str(valueObjB(1,2));
+            valueObjB_3 = num2str(valueObjB(1,3));
+            valueObjB_4 = num2str(valueObjB(1,4));
+            valueObjB_5 = num2str(valueObjB(1,5));
         greenValue = datasample(valueObjB,1) %pick random value from valueObjB
         row = bigMatrix(i,:) %display options
             if greenValue == 5
@@ -119,14 +130,25 @@ for i=1:30
             end     
     end
     
+    %here is where everything is draw the first time
+    if ismember(greenValue, [9 12 6 19 15])
+       DrawFormattedText(win,valueObjA_1,650,450,white);
+       DrawFormattedText(win,valueObjA_2,700,450,white);
+       DrawFormattedText(win,valueObjA_3,800,450,white);
+       DrawFormattedText(win,valueObjA_4,850,450,white);
+       DrawFormattedText(win,valueObjA_5,950,450,white);
+       DrawFormattedText(win,'2   5   7   9   11',650,550,white);
+    else DrawFormattedText(win,valueObjB_1,650,450,white)
+         DrawFormattedText(win,valueObjB_2,700,450,white);
+         DrawFormattedText(win,valueObjB_3,750,450,white);
+         DrawFormattedText(win,valueObjB_4,850,450,white);
+         DrawFormattedText(win,valueObjB_5,950,450,white);
+         DrawFormattedText(win,'1   4   6   8   10',650,550,white);
+    end
+    
     rowString = num2str(row);
-    myText = rowString;
-    greenValueString = num2str(greenValue);
-
-    DrawFormattedText(win,greenValueString,'center',450,green);
-    DrawFormattedText(win,myText,'center',550,white);
-    DrawFormattedText(win,'^',650+50*ch(i),550+50,white);
     Screen('Flip',win);
+    
     keyName=''; % empty initial value
     while(~strcmp(keyName,'space')) % continues until current keyName is space
 
@@ -149,8 +171,20 @@ for i=1:30
                 end
         end
         
-        DrawFormattedText(win,greenValueString,'center',450,green);
-        DrawFormattedText(win,myText,'center',550,white);
+    if ismember(greenValue, [9 12 6 19 15])
+       DrawFormattedText(win,valueObjA_1,650,450,white);
+       DrawFormattedText(win,valueObjA_2,700,450,white);
+       DrawFormattedText(win,valueObjA_3,800,450,white);
+       DrawFormattedText(win,valueObjA_4,850,450,white);
+       DrawFormattedText(win,valueObjA_5,950,450,white);
+    else DrawFormattedText(win,valueObjB_1,650,450,white)
+         DrawFormattedText(win,valueObjB_2,700,450,white);
+         DrawFormattedText(win,valueObjB_3,750,450,white);
+         DrawFormattedText(win,valueObjB_4,850,450,white);
+         DrawFormattedText(win,valueObjB_5,950,450,white);
+    end
+ 
+        DrawFormattedText(win,rowString,650,550,white);
         DrawFormattedText(win,'^',650+50*ch(i),550+50,white);
         Screen('Flip',win);
 
@@ -165,12 +199,7 @@ for i=1:30
     elseif compChoice == imp(i)
         humanWin = 2
     end
-
-%rowString = num2str(row);
-%myText = rowString;
-%DrawFormattedText(win,myText,'center','center',white);
-%Screen('Flip',win);
-%[secs, keyCode, deltaSecs] = KbWait([],2);  
+ 
 end
 
 %Close screen
