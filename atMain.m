@@ -2,8 +2,8 @@
 %% Set things up
 
 %Clears stuff before
-clear all
-clc
+clear all;
+clc;
 
 KbName('UnifyKeyNames'); 
 
@@ -24,16 +24,14 @@ green = [0 255 0];
 keyLeft=KbName('leftArrow'); % Left arrow
 keyRight=KbName('rightArrow'); % Right arrow
 enter=KbName('return'); % Enter
+space=KbName('space'); %space
 
 %% Organize trials
 
 Cfg.run_mode = 'behav';
-blocks=3;
-%conditions=[1 2 3]; %1=base 2=punt_sec 3=punt_vinc
-%numConditions=length(conditions);
-numTrialsPerBlock=30;
-%numTrials=blocks*numTrialsPerBlock;
-
+conditions = [1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 ; 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 ; 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3];
+nrRuns = size(conditions,1);
+nrTrials = length(conditions);
 
 %% Start exp
 
@@ -78,23 +76,35 @@ matrix45B = matrixWholeB(1:45,:);
 matrix90 = [matrix45A; matrix45B];
 bigMatrix = matrix90(randperm(90),:);
 
-ch=ones(30,1);
+ch=ones(90,1);
 
-%% Start trials
+%% Welcome screen
 
-%Welcome screen (uncomment later)
-%DrawFormattedText(win,'Benvenuto! \n \n Quando sei pronto per cominciare, premi INVIO.','center','center',white);
-%Screen('Flip',win);
-%RestrictKeysForKbCheck(enter); % to restrict key presses to enter
-%[secs, keyCode, deltaSecs] = KbWait([],2);
-%RestrictKeysForKbCheck([]);
+DrawFormattedText(win,'Benvenuto! \n \n Quando sei pronto per cominciare, premi INVIO.','center','center',white);
+Screen('Flip',win);
+RestrictKeysForKbCheck(enter); % to restrict key presses to enter
+[secs, keyCode, deltaSecs] = KbWait([],2);
+RestrictKeysForKbCheck([]); %to turn of key presses restriction
 
-for i=1:30
+%% Start trial loop
+
+for j=1:nrRuns
+for i=1:nrTrials
+    if conditions(j,i) == 1
+       DrawFormattedText(win,'La prossima asta sarà: \n \n BASE','center','center',white);
+    elseif conditions(j,i) == 2
+        DrawFormattedText(win,'La prossima asta sarà: \n \n SECONDA PUNTATA','center','center',white);
+    elseif conditions(j,i) == 3
+        DrawFormattedText(win,'La prossima asta sarà: \n \n PUNTATA VINCENTE','center','center',white);
+    end
+    Screen('Flip',win);
+    WaitSecs(2);
+    
     if any(bigMatrix(i,:) == 7)
     permvalueObjA = valueObjA(randperm(5));
     greenValue = datasample(valueObjA,1) %pick random value from valueObjA
     row = bigMatrix(i,:) %display options
-    rednum = row(row > greenValue);
+    rednum = row(row < greenValue);
         if greenValue == 6
         compChoice = lookup{6}
         elseif greenValue == 12
@@ -110,7 +120,7 @@ for i=1:30
         permvalueObjB = valueObjB(randperm(5));
         greenValue = datasample(valueObjB,1) %pick random value from valueObjB
         row = bigMatrix(i,:) %display options
-        rednum = row(row > greenValue);
+        rednum = row(row < greenValue);
             if greenValue == 5
             compChoice = lookup{5}
             elseif greenValue == 8
@@ -124,25 +134,24 @@ for i=1:30
             end     
     end
     
-   
     rowString = num2str(row);
     greenValueString = num2str(greenValue);
+    rednumString = num2str(rednum);
     permvalueObjAString = num2str(valueObjA(randperm(5)));
     permvalueObjBString = num2str(valueObjB(randperm(5)));
     
     if ismember(greenValue, [9 12 6 19 15])
-       DrawFormattedText(win,['Possibili valori oggetto:    ' permvalueObjAString],'center',450,white)
-       else DrawFormattedText(win,['Possibili valori oggetto:    ' permvalueObjBString],'center',450,white)
+       DrawFormattedText(win,['Possibili valori oggetto:    ' permvalueObjAString],'center',450,white);
+       else DrawFormattedText(win,['Possibili valori oggetto:    ' permvalueObjBString],'center',450,white);
     end
 
     DrawFormattedText(win,['Valore reale:   ' greenValueString],'center',500,green);
-    DrawFormattedText(win,rowString,650,750,white);
-    %DrawFormattedText(win,'^',600+70*ch(i),750+50,white);
+    DrawFormattedText(win,['Set delle puntate:   ' rowString],'center',650,white);
     Screen('Flip',win);
-    
+
     keyName=''; % empty initial value
     while(~strcmp(keyName,'space')) % continues until current keyName is space
-
+        
         [keyTime, keyCode]=KbWait([],2);
         keyName=KbName(keyCode);
         switch keyName
@@ -162,15 +171,16 @@ for i=1:30
                 end
         end
         
-        
        if ismember(greenValue, [9 12 6 19 15])
-       DrawFormattedText(win,['Possibili valori oggetto:    ' permvalueObjAString],'center',450,white)
-          else DrawFormattedText(win,['Possibili valori oggetto:    ' permvalueObjBString],'center',450,white)
+          DrawFormattedText(win,['Possibili valori oggetto:    ' permvalueObjAString],'center',450,white);
+       else DrawFormattedText(win,['Possibili valori oggetto:    ' permvalueObjBString],'center',450,white);
        end
        
         DrawFormattedText(win,['Valore reale:   ' greenValueString],'center',500,green);
-        DrawFormattedText(win,rowString,650,750,white);
+        DrawFormattedText(win,['Set delle puntate:   ' rowString],'center',650,white);
+        DrawFormattedText(win,['Puntate possibili:   ' rednumString],'center',700,white);
         DrawFormattedText(win,'^',600+70*ch(i),750+50,white);
+        DrawFormattedText(win,'Premi SPAZIO per confermare la tua scelta','center',950,white);
         Screen('Flip',win);
 
     end
@@ -184,8 +194,28 @@ for i=1:30
     elseif compChoice == imp(i)
         humanWin = 2
     end
+    
+    compChoiceString = num2str(compChoice);
+    
+    if (conditions(j,i) == 1) && (humanWin == 1)
+       DrawFormattedText(win,'Hai vinto!','center','center',white);
+    elseif (conditions(j,i) == 1) && (humanWin == 0)
+        DrawFormattedText(win,'Hai perso!','center','center',white);
+    elseif (conditions(j,i) == 2) && (humanWin == 1)
+        DrawFormattedText(win,['Hai vinto! \n \n Il computer ha giocato:  ' compChoiceString],'center','center',white);
+    elseif (conditions(j,i) == 2 && humanWin == 0)
+        DrawFormattedText(win,['Hai perso! \n \n Il computer ha giocato:  ' compChoiceString],'center','center',white);
+    elseif (conditions(j,i) == 3 && humanWin == 1)
+        DrawFormattedText(win,'Hai vinto!','center','center',white);
+    elseif (conditions(j,i) == 3 && humanWin == 0)
+        DrawFormattedText(win,['Hai perso! \n \n Il computer ha giocato:  ' compChoiceString],'center','center',white);
+    end
+    Screen('Flip',win);
+    WaitSecs(2);
  
 end
+    %imp(i)=row(ch(i)) %subject choice
+    end
 
 %Close screen
 Screen('CloseAll');
