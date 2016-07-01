@@ -27,9 +27,15 @@ enter=KbName('return'); % Enter
 space=KbName('space'); %space
 
 %% Organize trials
+ 
+A = [1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3];
+Ashuffled=A(randperm(length(A)));
+B = [2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 3 3 3 3 3 3 3 3 3 3];
+Bshuffled=B(randperm(length(B)));
+C = [3 3 3 3 3 3 3 3 3 3 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2];
+Cshuffled=C(randperm(length(C)));
 
-Cfg.run_mode = 'behav';
-conditions = [1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 ; 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 ; 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3 1 2 3];
+conditions = vertcat(Ashuffled,Bshuffled,Cshuffled);
 nrRuns = size(conditions,1);
 nrTrials = length(conditions);
 
@@ -98,13 +104,13 @@ for i=1:nrTrials
         DrawFormattedText(win,'La prossima asta sarà: \n \n PUNTATA VINCENTE','center','center',white);
     end
     Screen('Flip',win);
-    WaitSecs(2);
+    WaitSecs(.2);
     
     if any(bigMatrix(i,:) == 7)
     permvalueObjA = valueObjA(randperm(5));
     greenValue = datasample(valueObjA,1) %pick random value from valueObjA
     row = bigMatrix(i,:) %display options
-    rednum = row(row < greenValue);
+    survivingChoices = row(row < greenValue);
         if greenValue == 6
         compChoice = lookup{6}
         elseif greenValue == 12
@@ -120,7 +126,7 @@ for i=1:nrTrials
         permvalueObjB = valueObjB(randperm(5));
         greenValue = datasample(valueObjB,1) %pick random value from valueObjB
         row = bigMatrix(i,:) %display options
-        rednum = row(row < greenValue);
+        survivingChoices = row(row < greenValue);
             if greenValue == 5
             compChoice = lookup{5}
             elseif greenValue == 8
@@ -136,7 +142,7 @@ for i=1:nrTrials
     
     rowString = num2str(row);
     greenValueString = num2str(greenValue);
-    rednumString = num2str(rednum);
+    survivingChoicesString = num2str(survivingChoices);
     permvalueObjAString = num2str(valueObjA(randperm(5)));
     permvalueObjBString = num2str(valueObjB(randperm(5)));
     
@@ -146,14 +152,47 @@ for i=1:nrTrials
     end
 
     DrawFormattedText(win,['Valore reale:   ' greenValueString],'center',500,green);
-    DrawFormattedText(win,['Set delle puntate:   ' rowString],'center',650,white);
+    DrawFormattedText(win,['Set delle puntate:   ' rowString],500,650,white);
     Screen('Flip',win);
-
+    WaitSecs(.2);
+    
+       if ismember(greenValue, [9 12 6 19 15])
+          DrawFormattedText(win,['Possibili valori oggetto:    ' permvalueObjAString],'center',450,white);
+       else DrawFormattedText(win,['Possibili valori oggetto:    ' permvalueObjBString],'center',450,white);
+       end
+       
+        DrawFormattedText(win,['Valore reale:   ' greenValueString],'center',500,green);
+        DrawFormattedText(win,['Set delle puntate:   ' rowString],500,650,white);
+        DrawFormattedText(win,'Puntate possibili:     ',500,700,white);
+        DrawFormattedText(win,survivingChoicesString,900,700,white);
+        DrawFormattedText(win,'^',830+70*ch(i),750,white);
+        DrawFormattedText(win,'Premi SPAZIO per confermare la tua scelta','center',950,white);
+        Screen('Flip',win);
+    
+    %loop to select decision
     keyName=''; % empty initial value
     while(~strcmp(keyName,'space')) % continues until current keyName is space
         
         [keyTime, keyCode]=KbWait([],2);
         keyName=KbName(keyCode);
+        
+        if length(survivingChoices) == 1
+        switch keyName
+            case 'LeftArrow' 
+                ch(i)=ch(i)-1;
+                %ch(i)=ch(i);
+                if ch(i)<=1
+                    ch(i)=1;
+                end
+
+            case 'RightArrow'
+                ch(i)=ch(i)+1;
+                %ch(i)=ch(i);
+                if ch(i)>=2
+                    ch(i)=1;
+                end        
+        end
+        elseif length(survivingChoices) == 2
         switch keyName
             case 'LeftArrow' 
                 ch(i)=ch(i)-1;
@@ -163,12 +202,52 @@ for i=1:nrTrials
 
             case 'RightArrow'
                 ch(i)=ch(i)+1;
-                %while(row(ch(i))> greenValue)
-                    %ch(i)=ch(i)+1;
-                %end
+                if ch(i)>=3
+                    ch(i)=2;
+                end        
+        end
+        elseif length(survivingChoices) == 3
+        switch keyName
+            case 'LeftArrow' 
+                ch(i)=ch(i)-1;
+                if ch(i)<=1
+                    ch(i)=1;
+                end
+
+            case 'RightArrow'
+                ch(i)=ch(i)+1;
+                if ch(i)>=4
+                    ch(i)=3;
+                end        
+        end
+        elseif length(survivingChoices) == 4
+        switch keyName
+            case 'LeftArrow' 
+                ch(i)=ch(i)-1;
+                if ch(i)<=1
+                    ch(i)=1;
+                end
+
+            case 'RightArrow'
+                ch(i)=ch(i)+1;
+                if ch(i)>=5
+                    ch(i)=4;
+                end        
+        end
+        elseif length(survivingChoices) == 5
+        switch keyName
+            case 'LeftArrow' 
+                ch(i)=ch(i)-1;
+                if ch(i)<=1
+                    ch(i)=1;
+                end
+
+            case 'RightArrow'
+                ch(i)=ch(i)+1;
                 if ch(i)>=6
                     ch(i)=5;
-                end
+                end        
+        end
         end
         
        if ismember(greenValue, [9 12 6 19 15])
@@ -177,24 +256,27 @@ for i=1:nrTrials
        end
        
         DrawFormattedText(win,['Valore reale:   ' greenValueString],'center',500,green);
-        DrawFormattedText(win,['Set delle puntate:   ' rowString],'center',650,white);
-        DrawFormattedText(win,['Puntate possibili:   ' rednumString],'center',700,white);
-        DrawFormattedText(win,'^',600+70*ch(i),750+50,white);
+        DrawFormattedText(win,['Set delle puntate:   ' rowString],500,650,white);
+        DrawFormattedText(win,'Puntate possibili:     ',500,700,white);
+        DrawFormattedText(win,survivingChoicesString,900,700,white);
+        DrawFormattedText(win,'^',830+70*ch(i),750,white);
         DrawFormattedText(win,'Premi SPAZIO per confermare la tua scelta','center',950,white);
         Screen('Flip',win);
 
     end
     
-    imp(i)=row(ch(i)) %subject choice
-
-    if compChoice > imp(i) %determine who won
+    imp(i)=survivingChoices(ch(i)) %subject choice
+    
+    %determine who won
+    if compChoice > imp(i)
         humanWin = 0
     elseif compChoice < imp(i)
         humanWin = 1
     elseif compChoice == imp(i)
-        humanWin = 2
+        humanWin = sum(rand >= cumsum([0.5])) %assign 50% prob of winning in case of draw
     end
     
+    %show post-choice info
     compChoiceString = num2str(compChoice);
     
     if (conditions(j,i) == 1) && (humanWin == 1)
@@ -211,12 +293,24 @@ for i=1:nrTrials
         DrawFormattedText(win,['Hai perso! \n \n Il computer ha giocato:  ' compChoiceString],'center','center',white);
     end
     Screen('Flip',win);
-    WaitSecs(2);
- 
+    WaitSecs(.2);
+        
 end
     %imp(i)=row(ch(i)) %subject choice
+    
+    %insert breaks after block 1 and block 2
+    if j == 1 && i == 30
+        DrawFormattedText(win,'Pausa. \n \n Premi INVIO per continuare.','center','center',white);
+    elseif j == 2 && i == 30
+        DrawFormattedText(win,'Pausa. \n \n Premi INVIO per continuare.','center','center',white);
     end
-
+    Screen('Flip',win);
+    RestrictKeysForKbCheck(enter); % to restrict key presses to enter
+    [secs, keyCode, deltaSecs] = KbWait([],2);
+    RestrictKeysForKbCheck([]); %to turn of key presses restriction
+    
+end
+  
 %Close screen
 Screen('CloseAll');
 sca;
