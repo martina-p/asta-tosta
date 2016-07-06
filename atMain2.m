@@ -4,8 +4,8 @@
 %% Set things up
 
 % Clears stuff before
-%clear all;
-%clc;
+clear all;
+clc;
 
 KbName('UnifyKeyNames'); 
 
@@ -22,6 +22,7 @@ black = [0 0 0];
 red = [255 0 0]; 
 green = [0 255 0];
 blue = [0 0 255];
+grey = [150 150 150];
 
 % Keyboard parameters
 keyLeft=KbName('leftArrow'); % Left arrow
@@ -39,17 +40,17 @@ Cshuffled=A(randperm(length(A)));
 % B = [2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 3 3 3 3 3 3 3 3 3 3];
 % C = [3 3 3 3 3 3 3 3 3 3 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2];
 
+
 Practice = [1 2 3];
 conditions = {Practice Ashuffled,Bshuffled,Cshuffled};
 nrRuns = length(conditions);
 
 %Instruction messages
 instr1 = ['Benvenuto! \n \n Questo esperimento consiste in 3 blocchi composti da 30 aste ciascuno. \n \n Alla fine del primo e del secondo blocco ci sarà una pausa.'];
-instr2 = ['In ogni asta sarai in competizione con il computer. \n \n In palio c''è un oggetto che può assumere un determinato valore. \n \n Questo valore comparirà in verde e verrà scelto a caso in ogni asta.']
+instr2 = ['In ogni asta sarai in competizione con il computer. \n \n In palio c''è un oggetto che può assumere un determinato valore. \n \n Questo valore comparirà in verde e verrà scelto a caso in ogni asta.'];
 instr3 = ['Di seguito ci saranno tre trial di prova.'];
 pressEnter = ['Premi INVIO per continuare con le istruzioni'];
 pressTrial = ['Premi INVIO per cominciare la prova'];
-
 message = {'Fine della prova. \n \n Premi INVIO per cominciare l''esperimento'
     'Pausa. \n \n Premi INVIO per continuare.'
     'Pausa. \n \n Premi INVIO per continuare.'
@@ -115,6 +116,7 @@ screenNumber=max(screens); % Main screen
 winRect = [0,0,1680,1050];
 [win,winRect] = Screen('OpenWindow',screenNumber,black);
 
+% Instructions
 % Present instructions
 RestrictKeysForKbCheck(enter); % to restrict key presses to enter
 
@@ -332,42 +334,75 @@ for i=1:nrTrials
     subjChoiceString = num2str(imp{j}(i));
     width_coeff = 70;
     start_coord = 200;
+    y_cood1 = 500;
+    y_cood2 = 550;
+    
+    for r = 1:greenValueSubj %length(row)
+        Screen('DrawLine', win, white, start_coord + r*width_coeff, y_cood2, start_coord + r*width_coeff,  y_cood2+20, 1);
+        if find(r == survivingChoices)
+            DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, white);
+            %Screen('DrawText', win, num2str(row(r)), start_coord + row(r)*width_coeff-10, y_cood2 + 70, white);
+        elseif find(r == row)
+            DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, grey);
+        else
+            DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, grey);
+        end
+    end
+    
+    if max(row)>greenValueSubj
+        Screen('FillRect', win, grey, [start_coord+greenValueSubj*width_coeff y_cood1 start_coord+max(row)*width_coeff y_cood2]);
+        for rr = find(row > greenValueSubj)
+            Screen('DrawLine', win, grey, start_coord + row(rr)*width_coeff, y_cood2, start_coord + row(rr)*width_coeff,  y_cood2+20, 1);
+            DrawFormattedText(win, num2str(row(rr)), start_coord + row(rr)*width_coeff-10, y_cood2 + 70, grey);
+        end
+    end
     
     if (conditions{j}(i) == 1) && (humanWin == 1) %BASE
-       DrawFormattedText(win,'Hai vinto!','center','center',white);
-       Screen('FillRect', win, white, [start_coord 200 start_coord+Sub_ch(end)*width_coeff 250]);
-       Screen('FillRect', win, green, [start_coord+Sub_ch(end)*width_coeff 200 start_coord+(greenValueSubj)*width_coeff 250]);
+       DrawFormattedText(win,'Hai vinto!','center',300,white);
+       Screen('FillRect', win, white, [start_coord y_cood1 start_coord+Sub_ch(end)*width_coeff y_cood2]);
+       Screen('FillRect', win, green, [start_coord+Sub_ch(end)*width_coeff y_cood1 start_coord+(greenValueSubj)*width_coeff y_cood2]);
+       Screen('FillRect', win, white, [start_coord+Sub_ch(end)*width_coeff-5 y_cood1-2 start_coord+Sub_ch(end)*width_coeff+5 y_cood2+2]);
     elseif (conditions{j}(i) == 1) && (humanWin == 0) %BASE
-        DrawFormattedText(win,'Hai perso!','center','center',white);
-        Screen('FillRect', win, red, [start_coord 200 start_coord+greenValueSubj*width_coeff 250]);
+        DrawFormattedText(win,'Hai perso!','center',300,white);
+        Screen('FillRect', win, red, [start_coord y_cood1 start_coord+greenValueSubj*width_coeff y_cood2]);
+        Screen('FillRect', win, white, [start_coord+Sub_ch(end)*width_coeff-5 y_cood1-2 start_coord+Sub_ch(end)*width_coeff+5 y_cood2+2]);
     elseif (conditions{j}(i) == 2) && (humanWin == 1) %SECONDA PUNTATA
-        DrawFormattedText(win,['Hai vinto! \n \n Il computer ha giocato:  ' compChoiceString],'center','center',white);
-        Screen('FillRect', win, white, [start_coord 200 start_coord+compChoice*width_coeff 250]);
-        Screen('FillRect', win, blue, [start_coord+compChoice*width_coeff 200 start_coord+Sub_ch(end)*width_coeff 250]);
-        Screen('FillRect', win, green, [start_coord+Sub_ch(end)*width_coeff 200 start_coord+greenValueSubj*width_coeff 250]);
+        DrawFormattedText(win,['Hai vinto! \n \n Il computer ha giocato:  ' compChoiceString],'center',300,white);
+        Screen('FillRect', win, white, [start_coord y_cood1 start_coord+compChoice*width_coeff y_cood2]);
+        Screen('FillRect', win, blue, [start_coord+compChoice*width_coeff y_cood1 start_coord+Sub_ch(end)*width_coeff y_cood2]);
+        Screen('FillRect', win, green, [start_coord+Sub_ch(end)*width_coeff y_cood1 start_coord+greenValueSubj*width_coeff y_cood2]);
+        Screen('FillRect', win, white, [start_coord+Sub_ch(end)*width_coeff-5 y_cood1-2 start_coord+Sub_ch(end)*width_coeff+5 y_cood2+2]);
+        Screen('FillRect', win, grey, [start_coord+compChoice*width_coeff-5 y_cood1-2 start_coord+compChoice*width_coeff+5 y_cood2+2]);
     elseif (conditions{j}(i) == 2 && humanWin == 0) %SECONDA PUNTATA
-        DrawFormattedText(win,['Hai perso! \n \n Hai giocato:  ' subjChoiceString],'center','center',white); %add subjChoice
-        Screen('FillRect', win, red, [start_coord 200 start_coord+greenValueSubj*width_coeff 250]);
+        DrawFormattedText(win,['Hai perso! \n \n Hai giocato:  ' subjChoiceString],'center',300,white); %add subjChoice
+        Screen('FillRect', win, red, [start_coord y_cood1 start_coord+greenValueSubj*width_coeff y_cood2]);
+        Screen('FillRect', win, white, [start_coord+Sub_ch(end)*width_coeff-5 y_cood1-2 start_coord+Sub_ch(end)*width_coeff+5 y_cood2+2]);
     elseif (conditions{j}(i) == 3 && humanWin == 1) %PUNTATA VINCENTE
-        DrawFormattedText(win,'Hai vinto!','center','center',white);
-        Screen('FillRect', win, white, [start_coord 200 start_coord+Sub_ch(end)*width_coeff 250]);
-        Screen('FillRect', win, green, [start_coord+Sub_ch(end)*width_coeff 200 start_coord+(greenValueSubj)*width_coeff 250]);
+        DrawFormattedText(win,'Hai vinto!','center',300,white);
+        Screen('FillRect', win, white, [start_coord y_cood1 start_coord+Sub_ch(end)*width_coeff y_cood2]);
+        Screen('FillRect', win, green, [start_coord+Sub_ch(end)*width_coeff y_cood1-2 start_coord+(greenValueSubj)*width_coeff y_cood2+2]);
+        Screen('FillRect', win, white, [start_coord+Sub_ch(end)*width_coeff-5 y_cood1-2 start_coord+Sub_ch(end)*width_coeff+5 y_cood2+2]);
     elseif (conditions{j}(i) == 3 && humanWin == 0) %PUNTATA VINCENTE
-        DrawFormattedText(win,['Hai perso! \n \n Il computer ha giocato:  ' compChoiceString],'center','center',white);
+        DrawFormattedText(win,['Hai perso! \n \n Il computer ha giocato:  ' compChoiceString],'center',300,white);
         if greenValueSubj>compChoice
-            Screen('FillRect', win, red, [start_coord 200 start_coord+Sub_ch(end)*width_coeff 250]);
-            Screen('FillRect', win, red, [start_coord+Sub_ch(end)*width_coeff 200 start_coord+compChoice*width_coeff 250]);
-            Screen('FillRect', win, blue, [start_coord+compChoice*width_coeff 200 start_coord+greenValueSubj*width_coeff 250]);
+            Screen('FillRect', win, red, [start_coord y_cood1 start_coord+Sub_ch(end)*width_coeff y_cood2]);
+            Screen('FillRect', win, red, [start_coord+Sub_ch(end)*width_coeff y_cood1 start_coord+compChoice*width_coeff y_cood2]);
+            Screen('FillRect', win, blue, [start_coord+compChoice*width_coeff y_cood1 start_coord+greenValueSubj*width_coeff y_cood2]);
+            Screen('FillRect', win, white, [start_coord+Sub_ch(end)*width_coeff-5 y_cood1-2 start_coord+Sub_ch(end)*width_coeff+5 y_cood2+2]);
+            Screen('FillRect', win, grey, [start_coord+compChoice*width_coeff-5 y_cood1-2 start_coord+compChoice*width_coeff+5 y_cood2+2]);
         elseif greenValueSubj<=compChoice
-            Screen('FillRect', win, red, [start_coord 200 start_coord+compChoice(end)*width_coeff 250]);
+            Screen('FillRect', win, red, [start_coord y_cood1 start_coord+compChoice(end)*width_coeff y_cood2]);
+            Screen('FillRect', win, white, [start_coord+Sub_ch(end)*width_coeff-5 y_cood1-2 start_coord+Sub_ch(end)*width_coeff+5 y_cood2+2]);
+            Screen('FillRect', win, grey, [start_coord+compChoice*width_coeff-5 y_cood1-2 start_coord+compChoice*width_coeff+5 y_cood2+2]);
         end
     end
     Screen('Flip',win);
-    WaitSecs(.2);
+    RestrictKeysForKbCheck(space)
+    [secs, keyCode, deltaSecs] = KbWait([],2);
     
     s_value(trialnb,1) = greenValueSubj;
     s_fulloptions{trialnb} = row;
-    %s_options{trialnb} = survivingChoices;
+    s_options{trialnb} = survivingChoices;
     c_choice(trialnb,1) = compChoice;     
     s_win(trialnb,1) = humanWin;
 end
@@ -381,10 +416,10 @@ end
     
 end
 
-%save data
 subject(1:trialnb,1) = iSubject;
-data = table(subject, runnb, [1:trialnb]', cell2mat(conditions)', cell2mat(imp)', s_value, c_choice, s_win);
-save(resultname, 'data');
+%save data
+data = table(subject, runnb, [1:trialnb]', cell2mat(conditions)', cell2mat(imp)', s_value,  c_choice, s_win);
+%save(resultname, 'data');
 
 %Close screen
 Screen('CloseAll');
