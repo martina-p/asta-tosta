@@ -4,8 +4,8 @@
 %% Set things up
 
 % Clears stuff before
-clear all;
-clc;
+%clear all;
+%clc;
 
 KbName('UnifyKeyNames'); 
 
@@ -39,10 +39,16 @@ Cshuffled=A(randperm(length(A)));
 % B = [2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 3 3 3 3 3 3 3 3 3 3];
 % C = [3 3 3 3 3 3 3 3 3 3 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2];
 
-
 Practice = [1 2 3];
 conditions = {Practice Ashuffled,Bshuffled,Cshuffled};
 nrRuns = length(conditions);
+
+%Instruction messages
+instr1 = ['Benvenuto! \n \n Questo esperimento consiste in 3 blocchi composti da 30 aste ciascuno. \n \n Alla fine del primo e del secondo blocco ci sarà una pausa.'];
+instr2 = ['In ogni asta sarai in competizione con il computer. \n \n In palio c''è un oggetto che può assumere un determinato valore. \n \n Questo valore comparirà in verde e verrà scelto a caso in ogni asta.']
+instr3 = ['Di seguito ci saranno tre trial di prova.'];
+pressEnter = ['Premi INVIO per continuare con le istruzioni'];
+pressTrial = ['Premi INVIO per cominciare la prova'];
 
 message = {'Fine della prova. \n \n Premi INVIO per cominciare l''esperimento'
     'Pausa. \n \n Premi INVIO per continuare.'
@@ -109,32 +115,24 @@ screenNumber=max(screens); % Main screen
 winRect = [0,0,1680,1050];
 [win,winRect] = Screen('OpenWindow',screenNumber,black);
 
-% Instructions
-DrawFormattedText(win,'Benvenuto! \n \n Quando sei pronto per cominciare, premi INVIO.','center','center',white);
-Screen('Flip',win);
+% Present instructions
 RestrictKeysForKbCheck(enter); % to restrict key presses to enter
-[secs, keyCode, deltaSecs] = KbWait([],2);
-RestrictKeysForKbCheck([]); %to turn of key presses restriction
 
-DrawFormattedText(win,'ISTRUZIONI 1','center','center',white);
-DrawFormattedText(win,'Premi INVIO per continuare.','center',950,white);
+DrawFormattedText(win,instr1,'center','center',white);
+DrawFormattedText(win,pressEnter,'center',900,white);
 Screen('Flip',win);
-RestrictKeysForKbCheck(enter); % to restrict key presses to enter
 [secs, keyCode, deltaSecs] = KbWait([],2);
-RestrictKeysForKbCheck([]); %to turn of key presses restriction
 
-DrawFormattedText(win,'ISTRUZIONI 2','center','center',white);
-DrawFormattedText(win,'Premi INVIO per continuare','center',950,white);
+DrawFormattedText(win,instr2,'center','center',white);
+DrawFormattedText(win,pressEnter,'center',900,white);
 Screen('Flip',win);
-RestrictKeysForKbCheck(enter); % to restrict key presses to enter
 [secs, keyCode, deltaSecs] = KbWait([],2);
-RestrictKeysForKbCheck([]); %to turn of key presses restriction
 
-DrawFormattedText(win,'ISTRUZIONI 3 \n \n Di seguito ci saranno tre trials di prova. ','center','center',white);
-DrawFormattedText(win,'Premi INVIO per continuare','center',950,white);
+DrawFormattedText(win,instr3,'center','center',white);
+DrawFormattedText(win,pressTrial,'center',900,white);
 Screen('Flip',win);
-RestrictKeysForKbCheck(enter); % to restrict key presses to enter
 [secs, keyCode, deltaSecs] = KbWait([],2);
+
 RestrictKeysForKbCheck([]); %to turn of key presses restriction
 
 %% Trial loop
@@ -365,11 +363,11 @@ for i=1:nrTrials
         end
     end
     Screen('Flip',win);
-    WaitSecs(3);
+    WaitSecs(.2);
     
     s_value(trialnb,1) = greenValueSubj;
     s_fulloptions{trialnb} = row;
-    s_options{trialnb} = survivingChoices;
+    %s_options{trialnb} = survivingChoices;
     c_choice(trialnb,1) = compChoice;     
     s_win(trialnb,1) = humanWin;
 end
@@ -383,10 +381,10 @@ end
     
 end
 
-subject(1:trialnb,1) = iSubject;
 %save data
-data = table(subject, runnb, [1:trialnb]', cell2mat(conditions)', cell2mat(imp)', s_value, s_options,  c_choice, s_win);
-%save(resultname, 'data');
+subject(1:trialnb,1) = iSubject;
+data = table(subject, runnb, [1:trialnb]', cell2mat(conditions)', cell2mat(imp)', s_value, c_choice, s_win);
+save(resultname, 'data');
 
 %Close screen
 Screen('CloseAll');
