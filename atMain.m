@@ -8,6 +8,9 @@ clear all;
 clc;
 
 Screenshot=1;
+if Screenshot==1 && ~isdir('Screenshots')
+    mkdir('Screenshots')
+end
 
 KbName('UnifyKeyNames');
 
