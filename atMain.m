@@ -1,5 +1,5 @@
- % Script to run "asta tosta" game
-% Martina Puppi, June 2916
+% Script to run "asta tosta" game
+% Martina Puppi & Nadège Bault, June 2016
 
 %% Set things up
 
@@ -7,10 +7,11 @@
 clear all;
 clc;
 
-Screenshot=1;
-if Screenshot==1 && ~isdir('Screenshots')
-    mkdir('Screenshots')
-end
+% Take screenshot
+%Screenshot=1;
+%if Screenshot==1 && ~isdir('Screenshots')
+    %mkdir('Screenshots')
+%end
 
 KbName('UnifyKeyNames');
 
@@ -29,6 +30,7 @@ green = [0 255 0];
 blue = [0 0 255];
 grey = [150 150 150];
 
+% Bar coordinates
 width_coeff = 60;
 start_coord = 50;
 y_cood1 = 600;
@@ -41,7 +43,6 @@ enter=KbName('return'); % Enter
 space=KbName('space'); % Space
 
 %% Trials organization
-
 A = [1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3 3 3 3 3 3 3 3];
 Ashuffled=A(randperm(length(A)));
 Bshuffled=A(randperm(length(A)));
@@ -52,9 +53,7 @@ conditions = {Practice Ashuffled,Bshuffled,Cshuffled};
 nrRuns = length(conditions);
 
 %Instruction messages
-instr1 = ['Benvenuto! \n \n Questo esperimento consiste in 3 blocchi composti da 30 aste ciascuno. \n \n Alla fine del primo e del secondo blocco ci sarà una pausa.'];
-instr2 = ['In ogni asta sarai in competizione con il computer. \n \n In palio c''è un oggetto che può assumere un determinato valore. \n \n Questo valore comparirà in verde e verrà scelto a caso in ogni asta.'];
-instr3 = ['Di seguito ci saranno tre trial di prova.'];
+instr1 = ['Benvenuto! \n \n Premi invio per cominciare 3 turni di prova.'];
 pressEnter = ['Premi INVIO per continuare con le istruzioni'];
 pressTrial = ['Premi INVIO per cominciare la prova'];
 message = {'Fine della prova. \n \n Premi INVIO per cominciare l''esperimento'
@@ -71,8 +70,16 @@ condname = {'BASE'
     'PUNTATA VINCENTE'};
 
 %% Variables
+
+%the two sets of object values
 valueObjA = [9 12 6 19 15];
 valueObjB = [5 8 11 14 18];
+
+%matrix of possible bids
+perA = [2 5 7 9 11];
+perB = [1 4 6 8 10];
+matrix90 = [repmat(perA, 45, 1); repmat(perB, 45, 1)];
+bigMatrix = matrix90(randperm(90),:);
 
 %computer choices nash equilibrium A
 lookup{6} = 2;
@@ -88,23 +95,7 @@ lookup{11} = 6;
 lookup{14} = 8;
 lookup{18} = 10;
 
-perA = [2 5 7 9 11];
-perB = [1 4 6 8 10];
-
-%create random matrix of possible values A
-% perA = perms([2 5 7 9 11]);
-% matrixWholeA = perA(randperm(length(perA)),:);
-% matrix45A = matrixWholeA(1:45,:);
-%
-% %create random matrix of possible values B
-% perB = perms([1 4 6 8 10]);
-% matrixWholeB = perB(randperm(length(perB)),:);
-% matrix45B = matrixWholeB(1:45,:);
-
-%create one single big matrix, with rows shuffled
-matrix90 = [repmat(perA, 45, 1); repmat(perB, 45, 1)];
-bigMatrix = matrix90(randperm(90),:);
-
+%for subj chioice allocation
 ch=ones(90,1);
 
 %% Start exp
@@ -125,26 +116,11 @@ screenNumber=max(screens); % Main screen
 winRect = [0,0,1680,1050];
 [win,winRect] = Screen('OpenWindow',screenNumber,black);
 
-% Instructions
-% Present instructions
+% Instructions (minimal)
 RestrictKeysForKbCheck(enter); % to restrict key presses to enter
-
 DrawFormattedText(win,instr1,'center','center',white);
-DrawFormattedText(win,pressEnter,'center',900,white);
 Screen('Flip',win);
 [secs, keyCode, deltaSecs] = KbWait([],2);
-
-DrawFormattedText(win,instr2,'center','center',white);
-DrawFormattedText(win,pressEnter,'center',900,white);
-Screen('Flip',win);
-[secs, keyCode, deltaSecs] = KbWait([],2);
-
-DrawFormattedText(win,instr3,'center','center',white);
-DrawFormattedText(win,pressTrial,'center',900,white);
-Screen('Flip',win);
-[secs, keyCode, deltaSecs] = KbWait([],2);
-
-RestrictKeysForKbCheck([]); %to turn of key presses restriction
 
 %% Trial loop
 trialnb = 0;
@@ -157,7 +133,6 @@ for j=1:nrRuns
         runnb(trialnb,1) = j;
         
         DrawFormattedText(win, conmsg{conditions{j}(i)},'center','center',white);
-        
         Screen('Flip',win);
         WaitSecs(.2);
         
@@ -166,7 +141,17 @@ for j=1:nrRuns
             greenValueSubj = datasample(valueObjA,1)
             greenValue = datasample(valueObjA,1)
             row = bigMatrix(i,:) %set of options
-            survivingChoices = row(row < greenValueSubj);
+            survivingChoices = row(row <= greenValueSubj)
+            T_1Anr = permvalueObjA(1,1); % for later positioning with drawtext
+            T_2Anr = permvalueObjA(1,2);
+            T_3Anr = permvalueObjA(1,3);
+            T_4Anr = permvalueObjA(1,4);
+            T_5Anr = permvalueObjA(1,5);
+            T_1A = num2str(T_1Anr); % for later positioning with drawtext
+            T_2A = num2str(T_2Anr);
+            T_3A = num2str(T_3Anr);
+            T_4A = num2str(T_4Anr);
+            T_5A = num2str(T_5Anr);
             if greenValue == 6
                 compChoice = lookup{6}
             elseif greenValue == 12
@@ -183,7 +168,17 @@ for j=1:nrRuns
             greenValueSubj = datasample(valueObjB,1)
             greenValue = datasample(valueObjB,1)
             row = bigMatrix(i,:) %set of options
-            survivingChoices = row(row < greenValueSubj);
+            survivingChoices = row(row <= greenValueSubj)
+            T_1Bnr = permvalueObjB(1,1); % for later positioning with drawtext
+            T_2Bnr = permvalueObjB(1,2);
+            T_3Bnr = permvalueObjB(1,3);
+            T_4Bnr = permvalueObjB(1,4);
+            T_5Bnr = permvalueObjB(1,5);
+            T_1B = num2str(T_1Bnr); % for later positioning with drawtext
+            T_2B = num2str(T_2Bnr);
+            T_3B = num2str(T_3Bnr);
+            T_4B = num2str(T_4Bnr);
+            T_5B = num2str(T_5Bnr);
             if greenValue == 5
                 compChoice = lookup{5}
             elseif greenValue == 8
@@ -197,46 +192,177 @@ for j=1:nrRuns
             end
         end
         
-        rowString = num2str(row);
-        greenValueString = num2str(greenValueSubj);
-        survivingChoicesString = num2str(survivingChoices);
-        permvalueObjAString = num2str(valueObjA(randperm(5)));
-        permvalueObjBString = num2str(valueObjB(randperm(5)));
         
-        DrawFormattedText(win,condname{conditions{j}(i)},'center',400,white);
-        
-        if ismember(greenValue, [9 12 6 19 15])
-            DrawFormattedText(win,['Possibili valori oggetto:    ' permvalueObjAString],'center',450,white);
-        else DrawFormattedText(win,['Possibili valori oggetto:    ' permvalueObjBString],'center',450,white);
+        DrawFormattedText(win,condname{conditions{j}(i)},'center',400,white);        
+        if T_1Anr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1A],700,450,green)
+            DrawFormattedText(win,['                             ' T_2A],800,450,white);
+            DrawFormattedText(win,['                             ' T_3A],900,450,white);
+            DrawFormattedText(win,['                             ' T_4A],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5A],1100,450,white);
+        elseif T_2Anr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1A],700,450,white)
+            DrawFormattedText(win,['                             ' T_2A],800,450,green);
+            DrawFormattedText(win,['                             ' T_3A],900,450,white);
+            DrawFormattedText(win,['                             ' T_4A],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5A],1100,450,white);
+        elseif T_3Anr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1A],700,450,white)
+            DrawFormattedText(win,['                             ' T_2A],800,450,white);
+            DrawFormattedText(win,['                             ' T_3A],900,450,green);
+            DrawFormattedText(win,['                             ' T_4A],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5A],1100,450,white);
+        elseif T_4Anr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1A],700,450,white)
+            DrawFormattedText(win,['                             ' T_2A],800,450,white);
+            DrawFormattedText(win,['                             ' T_3A],900,450,white);
+            DrawFormattedText(win,['                             ' T_4A],1000,450,green);
+            DrawFormattedText(win,['                             ' T_5A],1100,450,white);
+        elseif T_5Anr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1A],700,450,white)
+            DrawFormattedText(win,['                             ' T_2A],800,450,white);
+            DrawFormattedText(win,['                             ' T_3A],900,450,white);
+            DrawFormattedText(win,['                             ' T_4A],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5A],1100,450,green);
+        elseif T_1Bnr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1B],700,450,green)
+            DrawFormattedText(win,['                             ' T_2B],800,450,white);
+            DrawFormattedText(win,['                             ' T_3B],900,450,white);
+            DrawFormattedText(win,['                             ' T_4B],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5B],1100,450,white);
+        elseif T_2Bnr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1B],700,450,white)
+            DrawFormattedText(win,['                             ' T_2B],800,450,green);
+            DrawFormattedText(win,['                             ' T_3B],900,450,white);
+            DrawFormattedText(win,['                             ' T_4B],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5B],1100,450,white);
+        elseif T_3Bnr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1B],700,450,white)
+            DrawFormattedText(win,['                             ' T_2B],800,450,white);
+            DrawFormattedText(win,['                             ' T_3B],900,450,green);
+            DrawFormattedText(win,['                             ' T_4B],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5B],1100,450,white);
+        elseif T_4Bnr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1B],700,450,white)
+            DrawFormattedText(win,['                             ' T_2B],800,450,white);
+            DrawFormattedText(win,['                             ' T_3B],900,450,white);
+            DrawFormattedText(win,['                             ' T_4B],1000,450,green);
+            DrawFormattedText(win,['                             ' T_5B],1100,450,white);
+       elseif T_5Bnr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1B],700,450,white)
+            DrawFormattedText(win,['                             ' T_2B],800,450,white);
+            DrawFormattedText(win,['                             ' T_3B],900,450,white);
+            DrawFormattedText(win,['                             ' T_4B],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5B],1100,450,green);
         end
         
-        DrawFormattedText(win,['Valore reale:   ' greenValueString],'center',500,green);
-        %DrawFormattedText(win,['Set delle puntate:   ' rowString],500,650,white);
+        RestrictKeysForKbCheck(enter); % to restrict key presses to enter
+        DrawFormattedText(win,'Premi INVIO per continuare','center',1000,white);
         Screen('Flip',win);
-        WaitSecs(2);
+        [secs, keyCode, deltaSecs] = KbWait([],2);
+        RestrictKeysForKbCheck([]); % to restrict key presses to enter
         
-        if Screenshot==1   
-            imageArray = Screen('GetImage', win); % GetImage call. Alter the rect argument to change the location of the screen shot
-            imwrite(imageArray, ['Screenshots\Trial' num2str(trialnb) 'Screen1.jpg']) % imwrite is a Matlab function
-        end
+        %if Screenshot==1   
+            %imageArray = Screen('GetImage', win); % GetImage call. Alter the rect argument to change the location of the screen shot
+            %imwrite(imageArray, ['Screenshots\Trial' num2str(trialnb) 'Screen1.jpg']) % imwrite is a Matlab function
+        %end
         
         DrawFormattedText(win,condname{conditions{j}(i)},'center',400,white);
-        if ismember(greenValue, [9 12 6 19 15])
-            DrawFormattedText(win,['Possibili valori oggetto:    ' permvalueObjAString],'center',450,white);
-        else DrawFormattedText(win,['Possibili valori oggetto:    ' permvalueObjBString],'center',450,white);
+        if T_1Anr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1A],700,450,green)
+            DrawFormattedText(win,['                             ' T_2A],800,450,white);
+            DrawFormattedText(win,['                             ' T_3A],900,450,white);
+            DrawFormattedText(win,['                             ' T_4A],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5A],1100,450,white);
+        elseif T_2Anr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1A],700,450,white)
+            DrawFormattedText(win,['                             ' T_2A],800,450,green);
+            DrawFormattedText(win,['                             ' T_3A],900,450,white);
+            DrawFormattedText(win,['                             ' T_4A],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5A],1100,450,white);
+        elseif T_3Anr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1A],700,450,white)
+            DrawFormattedText(win,['                             ' T_2A],800,450,white);
+            DrawFormattedText(win,['                             ' T_3A],900,450,green);
+            DrawFormattedText(win,['                             ' T_4A],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5A],1100,450,white);
+        elseif T_4Anr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1A],700,450,white)
+            DrawFormattedText(win,['                             ' T_2A],800,450,white);
+            DrawFormattedText(win,['                             ' T_3A],900,450,white);
+            DrawFormattedText(win,['                             ' T_4A],1000,450,green);
+            DrawFormattedText(win,['                             ' T_5A],1100,450,white);
+        elseif T_5Anr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1A],700,450,white)
+            DrawFormattedText(win,['                             ' T_2A],800,450,white);
+            DrawFormattedText(win,['                             ' T_3A],900,450,white);
+            DrawFormattedText(win,['                             ' T_4A],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5A],1100,450,green);
+        elseif T_1Bnr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1B],700,450,green)
+            DrawFormattedText(win,['                             ' T_2B],800,450,white);
+            DrawFormattedText(win,['                             ' T_3B],900,450,white);
+            DrawFormattedText(win,['                             ' T_4B],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5B],1100,450,white);
+        elseif T_2Bnr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1B],700,450,white)
+            DrawFormattedText(win,['                             ' T_2B],800,450,green);
+            DrawFormattedText(win,['                             ' T_3B],900,450,white);
+            DrawFormattedText(win,['                             ' T_4B],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5B],1100,450,white);
+        elseif T_3Bnr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1B],700,450,white)
+            DrawFormattedText(win,['                             ' T_2B],800,450,white);
+            DrawFormattedText(win,['                             ' T_3B],900,450,green);
+            DrawFormattedText(win,['                             ' T_4B],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5B],1100,450,white);
+        elseif T_4Bnr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1B],700,450,white)
+            DrawFormattedText(win,['                             ' T_2B],800,450,white);
+            DrawFormattedText(win,['                             ' T_3B],900,450,white);
+            DrawFormattedText(win,['                             ' T_4B],1000,450,green);
+            DrawFormattedText(win,['                             ' T_5B],1100,450,white);
+       elseif T_5Bnr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1B],700,450,white)
+            DrawFormattedText(win,['                             ' T_2B],800,450,white);
+            DrawFormattedText(win,['                             ' T_3B],900,450,white);
+            DrawFormattedText(win,['                             ' T_4B],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5B],1100,450,green);
         end
         
+        % Draw the bar
         Screen('FillRect', win, white, [start_coord y_cood1 start_coord+greenValueSubj*width_coeff y_cood2]);
         
+        % Draw the tick marks and numbers underneath
         for r = 1:greenValueSubj %length(row)
-            Screen('DrawLine', win, white, start_coord + r*width_coeff, y_cood2, start_coord + r*width_coeff,  y_cood2+20, 1);
+            Screen('DrawLine', win, white, start_coord + r*width_coeff, y_cood2, start_coord + r*width_coeff,  y_cood2+20, 1); %tick marks
             if find(r == survivingChoices)
-                DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, white);
+                DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, white); %white numbers if selectable
                 %Screen('DrawText', win, num2str(row(r)), start_coord + row(r)*width_coeff-10, y_cood2 + 70, white);
-            elseif find(r == row)
-                DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, grey);
-            else
-                DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, grey);
+            %elseif find(r == row)
+                %DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, grey); %grey numbers if not selectable
+            %else
+                %DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, grey);
             end
         end
         
@@ -248,28 +374,24 @@ for j=1:nrRuns
             end
         end
         
-        DrawFormattedText(win,['Valore reale:   ' greenValueString],'center',500,green);
-        %     DrawFormattedText(win,['Set delle puntate:   ' rowString],500,650,white);
-        %     DrawFormattedText(win,'Puntate possibili:     ',500,700,white);
-        %     DrawFormattedText(win,survivingChoicesString,900,700,white);
-        
+        %cursor
         if length(survivingChoices) > 1
             start_pos = 2;
         else
             start_pos = 1;
         end
+        
         Screen('FillRect', win, white, [start_coord+survivingChoices(start_pos)*width_coeff-5 y_cood1-2 start_coord+survivingChoices(start_pos)*width_coeff+5 y_cood2+2]);
         Screen('FrameRect', win, black, [start_coord+survivingChoices(start_pos)*width_coeff-6 y_cood1-2 start_coord+survivingChoices(start_pos)*width_coeff+6 y_cood2+2]);
-        % DrawFormattedText(win,'^',830+70*2,750,white);
-        DrawFormattedText(win,'Premi SPAZIO per confermare la tua scelta','center',950,white);
+        DrawFormattedText(win,'Premi SPAZIO per confermare la tua scelta','center',1000,white);
         keyCode = [];
         keyName=''; % empty initial value
         Screen('Flip',win);
         
-        if Screenshot==1   
-            imageArray = Screen('GetImage', win); % GetImage call. Alter the rect argument to change the location of the screen shot
-            imwrite(imageArray, ['Screenshots\Trial' num2str(trialnb) '_Screen2.jpg']) % imwrite is a Matlab function
-        end
+        %if Screenshot==1   
+            %imageArray = Screen('GetImage', win); % GetImage call. Alter the rect argument to change the location of the screen shot
+            %imwrite(imageArray, ['Screenshots\Trial' num2str(trialnb) '_Screen2.jpg']) % imwrite is a Matlab function
+        %end
         
         %Selection
         pos = start_pos;
@@ -288,17 +410,80 @@ for j=1:nrRuns
                         pos = pos + 1;
                     end
             end
-            DrawFormattedText(win,condname{conditions{j}(i)},'center',400,white);
-            if ismember(greenValue, [9 12 6 19 15])
-                DrawFormattedText(win,['Possibili valori oggetto:    ' permvalueObjAString],'center',450,white);
-            else DrawFormattedText(win,['Possibili valori oggetto:    ' permvalueObjBString],'center',450,white);
-            end
             
-            DrawFormattedText(win,['Valore reale:   ' greenValueString],'center',500,green);
-            %         DrawFormattedText(win,['Set delle puntate:   ' rowString],500,650,white);
-            %         DrawFormattedText(win,'Puntate possibili:     ',500,700,white);
-            %         DrawFormattedText(win,survivingChoicesString,900,700,white);
-            %         DrawFormattedText(win,'^',830+70*ch(i),750,white);
+        DrawFormattedText(win,condname{conditions{j}(i)},'center',400,white);
+        if T_1Anr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1A],700,450,green)
+            DrawFormattedText(win,['                             ' T_2A],800,450,white);
+            DrawFormattedText(win,['                             ' T_3A],900,450,white);
+            DrawFormattedText(win,['                             ' T_4A],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5A],1100,450,white);
+        elseif T_2Anr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1A],700,450,white)
+            DrawFormattedText(win,['                             ' T_2A],800,450,green);
+            DrawFormattedText(win,['                             ' T_3A],900,450,white);
+            DrawFormattedText(win,['                             ' T_4A],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5A],1100,450,white);
+        elseif T_3Anr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1A],700,450,white)
+            DrawFormattedText(win,['                             ' T_2A],800,450,white);
+            DrawFormattedText(win,['                             ' T_3A],900,450,green);
+            DrawFormattedText(win,['                             ' T_4A],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5A],1100,450,white);
+        elseif T_4Anr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1A],700,450,white)
+            DrawFormattedText(win,['                             ' T_2A],800,450,white);
+            DrawFormattedText(win,['                             ' T_3A],900,450,white);
+            DrawFormattedText(win,['                             ' T_4A],1000,450,green);
+            DrawFormattedText(win,['                             ' T_5A],1100,450,white);
+        elseif T_5Anr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1A],700,450,white)
+            DrawFormattedText(win,['                             ' T_2A],800,450,white);
+            DrawFormattedText(win,['                             ' T_3A],900,450,white);
+            DrawFormattedText(win,['                             ' T_4A],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5A],1100,450,green);
+        elseif T_1Bnr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1B],700,450,green)
+            DrawFormattedText(win,['                             ' T_2B],800,450,white);
+            DrawFormattedText(win,['                             ' T_3B],900,450,white);
+            DrawFormattedText(win,['                             ' T_4B],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5B],1100,450,white);
+        elseif T_2Bnr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1B],700,450,white)
+            DrawFormattedText(win,['                             ' T_2B],800,450,green);
+            DrawFormattedText(win,['                             ' T_3B],900,450,white);
+            DrawFormattedText(win,['                             ' T_4B],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5B],1100,450,white);
+        elseif T_3Bnr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1B],700,450,white)
+            DrawFormattedText(win,['                             ' T_2B],800,450,white);
+            DrawFormattedText(win,['                             ' T_3B],900,450,green);
+            DrawFormattedText(win,['                             ' T_4B],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5B],1100,450,white);
+        elseif T_4Bnr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1B],700,450,white)
+            DrawFormattedText(win,['                             ' T_2B],800,450,white);
+            DrawFormattedText(win,['                             ' T_3B],900,450,white);
+            DrawFormattedText(win,['                             ' T_4B],1000,450,green);
+            DrawFormattedText(win,['                             ' T_5B],1100,450,white);
+       elseif T_5Bnr == greenValueSubj
+            DrawFormattedText(win,'Possibili valori oggetto:    ',550,450,white)
+            DrawFormattedText(win,['                             ' T_1B],700,450,white)
+            DrawFormattedText(win,['                             ' T_2B],800,450,white);
+            DrawFormattedText(win,['                             ' T_3B],900,450,white);
+            DrawFormattedText(win,['                             ' T_4B],1000,450,white);
+            DrawFormattedText(win,['                             ' T_5B],1100,450,green);
+        end
+            
             Screen('FillRect', win, white, [start_coord+survivingChoices(pos)*width_coeff-5 y_cood1-2 start_coord+survivingChoices(pos)*width_coeff+5 y_cood2+2]);
             Screen('FrameRect', win, black, [start_coord+survivingChoices(pos)*width_coeff-6 y_cood1-2 start_coord+survivingChoices(pos)*width_coeff+6 y_cood2+2]);
             Screen('FillRect', win, white, [start_coord y_cood1 start_coord+greenValueSubj*width_coeff y_cood2]);
@@ -308,10 +493,10 @@ for j=1:nrRuns
                 if find(r == survivingChoices)
                     DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, white);
                     %Screen('DrawText', win, num2str(row(r)), start_coord + row(r)*width_coeff-10, y_cood2 + 70, white);
-                elseif find(r == row)
-                    DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, grey);
-                else
-                    DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, grey);
+                %elseif find(r == row)
+                    %DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, grey);
+                %else
+                    %DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, grey);
                 end
             end
             
@@ -324,14 +509,15 @@ for j=1:nrRuns
             end
             Screen('FrameRect', win, black, [start_coord+survivingChoices(pos)*width_coeff-6 y_cood1-2 start_coord+survivingChoices(pos)*width_coeff+6 y_cood2+2]);
  
-            DrawFormattedText(win,'Premi SPAZIO per confermare la tua scelta','center',950,white);
+            DrawFormattedText(win,'Premi SPAZIO per confermare la tua scelta','center',1000,white);
             Screen('Flip',win);
         end
         
-        if Screenshot==1   
-            imageArray = Screen('GetImage', win); % GetImage call. Alter the rect argument to change the location of the screen shot
-            imwrite(imageArray, ['Screenshots\Trial' num2str(trialnb) '_Screen3.jpg']) % imwrite is a Matlab function
-        end
+        %if Screenshot==1   
+            %imageArray = Screen('GetImage', win); % GetImage call. Alter the rect argument to change the location of the screen shot
+            %imwrite(imageArray, ['Screenshots\Trial' num2str(trialnb) '_Screen3.jpg']) % imwrite is a Matlab function
+        %end
+        
         imp{j}(i) = survivingChoices(pos) %subject choice
         Sub_ch = survivingChoices(pos);
         
@@ -356,10 +542,10 @@ for j=1:nrRuns
             if find(r == survivingChoices)
                 DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, white);
                 %Screen('DrawText', win, num2str(row(r)), start_coord + row(r)*width_coeff-10, y_cood2 + 70, white);
-            elseif find(r == row)
-                DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, grey);
-            else
-                DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, grey);
+            %elseif find(r == row)
+                %DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, grey);
+            %else
+                %DrawFormattedText(win, num2str(r), start_coord + r*width_coeff-10, y_cood2 + 70, grey);
             end
         end
         
@@ -403,12 +589,13 @@ for j=1:nrRuns
                 Screen('FillRect', win, grey, [start_coord+compChoice*width_coeff-5 y_cood1-2 start_coord+compChoice*width_coeff+5 y_cood2+2]);
             end
         end
+        DrawFormattedText(win,'Premi INVIO per passare alla prossima asta','center',1000,white);
         Screen('Flip',win);
-        if Screenshot==1   
-            imageArray = Screen('GetImage', win); % GetImage call. Alter the rect argument to change the location of the screen shot
-            imwrite(imageArray, ['Screenshots\Trial' num2str(trialnb) '_Screen4.jpg']) % imwrite is a Matlab function
-        end
-        RestrictKeysForKbCheck(space)
+        %if Screenshot==1   
+            %imageArray = Screen('GetImage', win); % GetImage call. Alter the rect argument to change the location of the screen shot
+            %imwrite(imageArray, ['Screenshots\Trial' num2str(trialnb) '_Screen4.jpg']) % imwrite is a Matlab function
+        %end
+        RestrictKeysForKbCheck(enter)
         [secs, keyCode, deltaSecs] = KbWait([],2);
         
         s_value(trialnb,1) = greenValueSubj;
