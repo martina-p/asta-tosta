@@ -2,7 +2,6 @@
 % Martina Puppi & Nadège Bault, June 2016
 
 %% Set things up
-
 % Clears stuff before
 clear all;
 clc;
@@ -70,7 +69,6 @@ condname = {'BASE'
     'PUNTATA VINCENTE'};
 
 %% Variables
-
 % The two sets of object values
 valueObjA = [9 12 6 19 15];
 valueObjB = [5 8 11 14 18];
@@ -99,7 +97,6 @@ lookup{18} = 10;
 ch=ones(90,1);
 
 %% Start exp
-
 % Data allocation
 iSubject=input('Participant number: ');
 DateTime = datestr(now,'yyyymmdd-HHMM');
@@ -376,15 +373,15 @@ for j=1:nrRuns
             end
         end     
         
-        %Restrict choices
+        %Gray out unbiddable values
         if max(row)>greenValueSubj
-            if any(bigMatrix(i,:) == 7)
-                Screen('FillRect', win, grey, [start_coord+greenValueSubj*width_coeff y_cood1 start_coord+max(perA)*width_coeff y_cood2]);
+            if any(bigMatrix(i,:) == 7) %A 
+                Screen('FillRect', win, grey, [start_coord+greenValueSubj*width_coeff y_cood1 start_coord+max(perA)*width_coeff y_cood2]); %bar
                 for rr = find(row > greenValueSubj)
-                    Screen('DrawLine', win, grey, start_coord + row(rr)*width_coeff, y_cood2, start_coord + row(rr)*width_coeff,  y_cood2+20, 1); %grey ticks
-                    DrawFormattedText(win, num2str(row(rr)), start_coord + row(rr)*width_coeff-10, y_cood2 + 70, grey); %grey numbers
+                    Screen('DrawLine', win, grey, start_coord + row(rr)*width_coeff, y_cood2, start_coord + row(rr)*width_coeff,  y_cood2+20, 1) %tick marks; %grey ticks
+                    DrawFormattedText(win, num2str(row(rr)), start_coord + row(rr)*width_coeff-10, y_cood2 + 70, grey); %gnumbers
                 end
-            elseif any(bigMatrix(i,:) == 10)
+            elseif any(bigMatrix(i,:) == 10) %B
                 Screen('FillRect', win, grey, [start_coord+greenValueSubj*width_coeff y_cood1 start_coord+max(perB)*width_coeff y_cood2]);
                 for rr = find(row > greenValueSubj)
                     Screen('DrawLine', win, grey, start_coord + row(rr)*width_coeff, y_cood2, start_coord + row(rr)*width_coeff,  y_cood2+20, 1);
@@ -393,15 +390,24 @@ for j=1:nrRuns
             end
         end
         
-        %cursor
+        %cursor? 
         if length(survivingChoices) > 1
             start_pos = 2;
         else
             start_pos = 1;
         end
         
-        Screen('FillRect', win, white, [start_coord+survivingChoices(start_pos)*width_coeff-5 y_cood1-2 start_coord+survivingChoices(start_pos)*width_coeff+5 y_cood2+2]);
-        Screen('FrameRect', win, black, [start_coord+survivingChoices(start_pos)*width_coeff-6 y_cood1-2 start_coord+survivingChoices(start_pos)*width_coeff+6 y_cood2+2]);
+        %random placement of cursor
+        if any(bigMatrix(i,:) == 7)
+            randomcursor = datasample(perA,1);
+        elseif any(bigMatrix(i,:) == 10)
+            randomcursor = datasample(perB,1);
+        end    
+        
+        %Cursor
+        Screen('FillRect', win, white, [start_coord+randomcursor*width_coeff-5 y_cood1-2 start_coord+randomcursor*width_coeff+5 y_cood2+2]); %solid white
+        Screen('FrameRect', win, black, [start_coord+randomcursor*width_coeff-6 y_cood1-2 start_coord+randomcursor*width_coeff+6 y_cood2+2]); %black frame
+        
         DrawFormattedText(win,'Premi SPAZIO per confermare la tua scelta','center',1000,white);
         keyCode = [];
         keyName=''; % empty initial value
@@ -530,6 +536,7 @@ for j=1:nrRuns
             end
         end     
         
+        %Gray out undbiddable bids
         if max(row)>greenValueSubj
             if any(bigMatrix(i,:) == 7)
                 Screen('FillRect', win, grey, [start_coord+greenValueSubj*width_coeff y_cood1 start_coord+max(perA)*width_coeff y_cood2]);
