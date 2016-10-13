@@ -1,7 +1,7 @@
-function astatosta
 % Script to run "asta tosta" game
 % Martina Puppi & Nadège Bault, June 2016
 
+function astatosta
 %% Set things up
 % Screenshots
 Screenshot=0;  %1 to take screenshots in each trial, 0 to not take any screenshot
@@ -84,6 +84,7 @@ screens=Screen('Screens');
 Screen('Preference', 'SkipSyncTests', 2);
 screenNumber=max(screens); % Main screen
 [win,winRect] = Screen('OpenWindow',screenNumber,black);
+Screen('TextSize',win, 22);
 
 % Instructions (minimal)
 RestrictKeysForKbCheck(enter); % to restrict key presses to enter
@@ -196,7 +197,9 @@ for j=1:nrRuns
         disp_ticks;
         DrawFormattedText(win, num2str(greenValueSubj), start_coord + greenValueSubj*width_coeff-10, y_cood2 + 50, green);
         
+        Screen('TextSize',win, 48);
         DrawFormattedText(win,condname{conditions{j}(i)},'center',200,white);
+        Screen('TextSize',win, 22);
         DrawFormattedText(win,condmsg{conditions{j}(i)},'center',900,white);
         if (conditions{j}(i) == 1) && (humanWin == 1) %BASE
             DrawFormattedText(win,num2str(Sub_ch),1110,900,white);
@@ -290,9 +293,10 @@ Screen('CloseAll');
 
 %% display functions
     function disp_only_white_values
-        %Screen(win,'TextSize',[44]);
         pos_horz = [1000 1100 1200 1300 1400];
-        DrawFormattedText(win,condname{conditions{j}(i)},'center',350,white); 
+        Screen('TextSize',win, 48);
+        DrawFormattedText(win,condname{conditions{j}(i)},'center',350,white);
+        Screen('TextSize',win, 22);
         DrawFormattedText(win,condmsg{conditions{j}(i)},'center',900,white);
         DrawFormattedText(win,'Possibili valori oggetto:',450,450,white)
         for tt=1:5
@@ -301,9 +305,10 @@ Screen('CloseAll');
     end
 
     function disp_green_value
-        %Screen(win,'TextSize',[9]);
         pos_horz = [1000 1100 1200 1300 1400];
-        DrawFormattedText(win,condname{conditions{j}(i)},'center',350,white); 
+        Screen('TextSize',win, 48);
+        DrawFormattedText(win,condname{conditions{j}(i)},'center',350,white);
+        Screen('TextSize',win, 22);
         DrawFormattedText(win,condmsg{conditions{j}(i)},'center',900,white);
         DrawFormattedText(win,'Possibili valori oggetto:',450,450,white)
         for tt=1:5
