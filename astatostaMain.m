@@ -1,7 +1,10 @@
 % Script to run "asta tosta" game
-% Martina Puppi & Nadège Bault, June 2016
+% Martina Puppi & NadÃ¨ge Bault, June 2016
 
-function astatosta
+function atMain
+
+global taskTimeStamp
+
 %% Set things up
 % Screenshots
 Screenshot=0;  %1 to take screenshots in each trial, 0 to not take any screenshot
@@ -78,6 +81,16 @@ lookup{6} = 2; lookup{12} = 7; lookup{15} = 9; lookup{19} = 11; lookup{9} = 5;
 % Computer choices Nash equilibrium B
 lookup{5} = 1; lookup{8} = 4; lookup{11} = 6; lookup{14} = 8; lookup{18} = 10;
 
+%% initialize event log
+Events.types = {};
+Events.values = {};
+Events.times = [];
+Events.exptimes = [];
+Events.act_durations = [];
+Events.int_durations = [];
+Events.info = {};
+nbevents = 0;
+
 %% Start exp
 % Open PTB
 screens=Screen('Screens');
@@ -87,10 +100,18 @@ screenNumber=max(screens); % Main screen
 Screen('TextSize',win, 22);
 
 % Instructions (minimal)
+taskTimeStamp = GetSecs;
+time.start = taskTimeStamp;
 RestrictKeysForKbCheck(enter); % to restrict key presses to enter
 DrawFormattedText(win,instr1,'center','center',white);
 Screen('Flip',win);
+
 [secs, keyCode, deltaSecs] = KbWait([],2);  %#ok<*ASGLU>
+keyName{1} = KbName(keyCode);
+time.end = GetSecs;
+[Events, nbevents] = LogEvents(Events, nbevents,  'Picture', 'Instructions', time);
+save(backupfile)   % backs the entire workspace up just in case we have to do a nasty abort
+[Events, nbevents] = LogEvents(Events, nbevents,  'Button Press', keyName, secs);
 
 %% Trial loop
 trialnb = 0;
@@ -115,19 +136,23 @@ for j=1:nrRuns
         survivingChoices = row(row <= greenValueSubj);
         
         compChoice = lookup{greenValue};
-        disp_only_white_values 
+        disp_only_white_values; 
         
+        time.start = GetSecs;
         Screen('Flip',win);
         WaitSecs(3);
-        
+
         if Screenshot==1
             imageArray = Screen('GetImage', win); % GetImage call. Alter the rect argument to change the location of the screen shot
             imwrite(imageArray, ['Screenshots\Trial' num2str(trialnb) 'Screen1.jpg']) % imwrite is a Matlab function
         end
         
-        disp_green_value
-        disp_bars
-        disp_ticks
+        time.end = GetSecs;
+        [Events, nbevents] = LogEvents(Events, nbevents,  'Picture', 'Screen1', time);
+        
+        disp_green_value;
+        disp_bars;
+        disp_ticks;
         
         %% Cursor
         %random placement of cursor
@@ -137,6 +162,7 @@ for j=1:nrRuns
         DrawFormattedText(win,'Premi SPAZIO per confermare la tua scelta','center',1000,white);
         keyCode = []; %#ok<NASGU>
         keyName=''; % empty initial value
+        time.start = GetSecs;
         Screen('Flip',win);
         
         if Screenshot==1
@@ -144,22 +170,27 @@ for j=1:nrRuns
             imwrite(imageArray, ['Screenshots\Trial' num2str(trialnb) '_Screen2.jpg']) % imwrite is a Matlab function
         end
         
+        [Events, nbevents] = LogEvents(Events, nbevents,  'Picture', 'Screen2', time);
+        
         %% Selection
         Time_start = GetSecs;
         pos = find(survivingChoices==randomcursor);
         RestrictKeysForKbCheck([]);
         while(~strcmp(keyName,'space')) % continues until current keyName is space
             [keyTime, keyCode]=KbWait([],2);
-            keyName=KbName(keyCode);
-            switch keyName
+            keyName{1} = KbName(keyCode);
+            [Events, nbevents] = LogEvents(Events, nbevents,  'Button Press', keyName, keyTime);
+            switch keyName{1}
                 case 'LeftArrow'
                     if pos > 1
                         pos = pos - 1;
                     end
+                    [Events, nbevents] = LogEvents(Events, nbevents,  'Picture', 'MoveCursor', time);
                 case 'RightArrow'
                     if pos < length(survivingChoices)
                         pos = pos + 1;
                     end
+                    [Events, nbevents] = LogEvents(Events, nbevents,  'Picture', 'MoveCursor', time);
             end
             
             disp_green_value;
@@ -167,7 +198,8 @@ for j=1:nrRuns
             disp_ticks;
             disp_cursor(survivingChoices(pos));
             DrawFormattedText(win,'Premi SPAZIO per confermare la tua scelta','center',1000,white);
-            Screen('Flip',win);
+            time.start = GetSecs;
+            Screen('Flip',win);    
         end
         
         Time_end = GetSecs;
@@ -247,6 +279,7 @@ for j=1:nrRuns
             end
         end
         DrawFormattedText(win,'Premi INVIO per passare alla prossima asta','center',1000,white);
+        time.start = GetSecs;
         Screen('Flip',win);
         
         if Screenshot==1
@@ -256,6 +289,11 @@ for j=1:nrRuns
         
         RestrictKeysForKbCheck(enter)
         [secs, keyCode, deltaSecs] = KbWait([],2);
+        keyName = {KbName(keyCode)};
+        
+        time.end = GetSecs;
+        [Events, nbevents] = LogEvents(Events, nbevents,  'Picture', 'Screen4', time);
+        [Events, nbevents] = LogEvents(Events, nbevents,  'Button Press', keyName, secs);
         
         s_value(trialnb,1) = greenValueSubj;
         s_fulloptions{trialnb} = row;
@@ -266,17 +304,22 @@ for j=1:nrRuns
     
     %% Insert breaks after block 1 and block 2
     DrawFormattedText(win,message{j},'center','center',white);
+    time.start = GetSecs;
     Screen('Flip',win);
     RestrictKeysForKbCheck(enter); % to restrict key presses to enter
     [secs, keyCode, deltaSecs] = KbWait([],2);
     RestrictKeysForKbCheck([]); %to turn of key presses restriction
+    keyName = {KbName(keyCode)};
+    time.end = GetSecs;
+    [Events, nbevents] = LogEvents(Events, nbevents,  'Picture', 'Break', time);
+    [Events, nbevents] = LogEvents(Events, nbevents,  'Button Press', keyName, secs);
     
 end
 
 %% save data
 subject(1:trialnb,1) = iSubject;
 data = [subject, runnb, [1:trialnb]', cell2mat(conditions)', cell2mat(imp)', s_value,  Choice_RT, c_choice, s_win, payoff, s_fulloptions, s_options]; %#ok<NBRAK,NASGU>
-save(resultname, 'data');
+save(resultname, 'data', 'Events');
 
 final_payoff = [];
 A = cell2mat(conditions);
